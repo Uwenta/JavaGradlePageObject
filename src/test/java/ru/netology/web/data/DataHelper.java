@@ -1,6 +1,9 @@
 package ru.netology.web.data;
 
+import com.github.javafaker.Faker;
 import lombok.Value;
+
+import java.util.Random;
 
 public class DataHelper {
   private DataHelper() {}
@@ -27,4 +30,17 @@ public class DataHelper {
   public static VerificationCode getVerificationCodeFor(AuthInfo authInfo) {
     return new VerificationCode("12345");
   }
+
+  public static String getNumberCard (int id) {
+    if (id == 1) {
+      return "5559 0000 0000 0001";
+    } if (id == 2)  {
+      return "5559 0000 0000 0002";
+    }
+    return null;
+  }
+
+
+
+
 }
