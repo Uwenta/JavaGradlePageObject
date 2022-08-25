@@ -15,15 +15,14 @@ class MoneyTransferTest {
 
     @BeforeEach
     void setUp() {
-        Configuration.holdBrowserOpen = true;
+        //Configuration.holdBrowserOpen = true;
+        open("http://localhost:9999");
     }
 
     @Test
         // тест переводит случайную валидную сумму с одной карты на другую, а потом обратно ту же самую сумму.
     void shouldTransferMoneyBetweenOwnCardsV1() {
-        open("http://localhost:9999");
-        var loginPage = new LoginPageV1();
-//    var loginPage = open("http://localhost:9999", LoginPageV1.class);
+        var loginPage = new LoginPageV2();
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
@@ -52,7 +51,6 @@ class MoneyTransferTest {
     @Test
         // сумма перевода равна сумме баланса карты, с которой осуществляется перевод
     void shouldNotTransferValidAmountEqualToBalance() {
-        open("http://localhost:9999");
         var loginPage = new LoginPageV2();
 //    var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
@@ -83,7 +81,6 @@ class MoneyTransferTest {
     @Test
         //Сумма перевода равна 0
     void shouldNotTransferValidAmountEqualToNull() {
-        open("http://localhost:9999");
         var loginPage = new LoginPageV2();
 //    var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
@@ -92,7 +89,8 @@ class MoneyTransferTest {
         var ListCardsPage = verificationPage.validVerify(verificationCode);
         int amount = 0;
         var DashboardPage = ListCardsPage.topUpButton(1);
-        DashboardPage = DashboardPage.topUpInvalid(amount, 2);
+
+        Assertions.assertSame(DashboardPage, DashboardPage.topUpInvalid(amount, 2));
 
     }
 
@@ -100,7 +98,6 @@ class MoneyTransferTest {
     @Test
         //сумма перевода превышает баланс карты, с которой осуществляется перевод
     void shouldNotTransferInvalidAmountMoreBalance() {
-        open("http://localhost:9999");
         var loginPage = new LoginPageV2();
 //      var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
@@ -109,7 +106,9 @@ class MoneyTransferTest {
         var ListCardsPage = verificationPage.validVerify(verificationCode);
         int amount = ListCardsPage.getInvalidTransferAmount(2);
         var DashboardPage = ListCardsPage.topUpButton(1);
-        DashboardPage = DashboardPage.topUpInvalid(amount, 2);
+
+
+        Assertions.assertSame(DashboardPage, DashboardPage.topUpInvalid(amount, 2));
     }
 
 }
