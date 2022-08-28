@@ -1,12 +1,10 @@
 package ru.netology.web.data;
 
-import com.github.javafaker.Faker;
 import lombok.Value;
-
-import java.util.Random;
 
 public class DataHelper {
   private DataHelper() {}
+
 
   @Value
   public static class AuthInfo {
@@ -31,16 +29,30 @@ public class DataHelper {
     return new VerificationCode("12345");
   }
 
-  public static String getNumberCard (int id) {
-    if (id == 1) {
-      return "5559 0000 0000 0001";
-    } if (id == 2)  {
-      return "5559 0000 0000 0002";
-    }
-    return null;
+
+  @Value
+  public static class CardsInfo {
+    private String numberCard;
+    private String dataTestId;
   }
 
+  public static CardsInfo getFirstCard() {
+    return new CardsInfo("5559 0000 0000 0001", "92df3f1c-a033-48e6-8390-206f6b1f56c0");
+  }
 
+  public static CardsInfo getSecondCard() {
+    return new CardsInfo("5559 0000 0000 0002", "0f3f5c2a-249e-4c3d-8287-09f7a039391d");
+  }
+
+  public static int getValidTransferAmount(int balance) {
+
+    return (int) (Math.random() * balance);
+  }
+
+  public static int getInvalidTransferAmount(int balance) {
+
+    return (int) ((Math.random() * 1_000_000) + balance);
+  }
 
 
 }

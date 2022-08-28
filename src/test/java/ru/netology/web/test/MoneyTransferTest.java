@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.web.data.DataHelper;
-import ru.netology.web.page.LoginPageV1;
 import ru.netology.web.page.LoginPageV2;
 
 import static com.codeborne.selenide.Selenide.open;
@@ -15,100 +14,129 @@ class MoneyTransferTest {
 
     @BeforeEach
     void setUp() {
-        //Configuration.holdBrowserOpen = true;
+        Configuration.holdBrowserOpen = true;
         open("http://localhost:9999");
     }
 
-    @Test
-        // тест переводит случайную валидную сумму с одной карты на другую, а потом обратно ту же самую сумму.
+    @Test  // тест переводит случайную валидную сумму с одной карты на другую, а потом обратно ту же самую сумму.
     void shouldTransferMoneyBetweenOwnCardsV1() {
         var loginPage = new LoginPageV2();
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        var ListCardsPage = verificationPage.validVerify(verificationCode);
+        var listCardsPage = verificationPage.validVerify(verificationCode);
 
-        int balance1 = ListCardsPage.getCardBalance(1);
-        int amount = ListCardsPage.getValidTransferAmount(2);
-        var DashboardPage = ListCardsPage.topUpButton(1);
-        ListCardsPage = DashboardPage.topUp(amount, 2);
+        var card1 = DataHelper.getFirstCard();
+        var card2 = DataHelper.getSecondCard();
+        int balance1 = listCardsPage.getCardBalance(card1);
+        int balance2 = listCardsPage.getCardBalance(card2);
+        int amount = DataHelper.getValidTransferAmount(balance2);
 
-        int expected = balance1 + amount;
-        int actual = ListCardsPage.getCardBalance(1);
+        var dashboardPage = listCardsPage.topUpButton(card1);
+        listCardsPage = dashboardPage.topUp(amount, card2);
 
-        int balance2 = ListCardsPage.getCardBalance(2);
-        DashboardPage = ListCardsPage.topUpButton(2);
-        ListCardsPage = DashboardPage.topUp(amount, 1);
+        Assertions.assertEquals((balance1+amount), listCardsPage.getCardBalance(card1));
+        Assertions.assertEquals((balance2-amount), listCardsPage.getCardBalance(card2));
 
-        int expected2 = balance2 + amount;
-        int actual2 = ListCardsPage.getCardBalance(2);
+        balance1 = listCardsPage.getCardBalance(card1);
+        balance2 = listCardsPage.getCardBalance(card2);
+        dashboardPage = listCardsPage.topUpButton(card2);
+        listCardsPage = dashboardPage.topUp(amount, card1);
 
-        Assertions.assertEquals(expected, actual);
-        Assertions.assertEquals(expected2, actual2);
+
+        Assertions.assertEquals((balance2+amount), listCardsPage.getCardBalance(card2));
+        Assertions.assertEquals((balance1-amount), listCardsPage.getCardBalance(card1));
 
     }
 
-    @Test
-        // сумма перевода равна сумме баланса карты, с которой осуществляется перевод
+   @Test  // сумма перевода равна сумме баланса карты, с которой осуществляется перевод.
     void shouldNotTransferValidAmountEqualToBalance() {
         var loginPage = new LoginPageV2();
-//    var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        var ListCardsPage = verificationPage.validVerify(verificationCode);
-        int balance1 = ListCardsPage.getCardBalance(1);
-        int amount = ListCardsPage.getCardBalance(2);
-        var DashboardPage = ListCardsPage.topUpButton(1);
-        ListCardsPage = DashboardPage.topUp(amount, 2);
+        var listCardsPage = verificationPage.validVerify(verificationCode);
 
-        int expected = balance1 + amount;
-        int actual = ListCardsPage.getCardBalance(1);
 
-        Assertions.assertEquals(expected, actual);
+        var card1 = DataHelper.getFirstCard();
+        var card2 = DataHelper.getSecondCard();
+        int balance1 = listCardsPage.getCardBalance(card1);
+        int balance2 = listCardsPage.getCardBalance(card2);
+        int amount = balance2;
 
-        int balance2 = ListCardsPage.getCardBalance(2);
-        DashboardPage = ListCardsPage.topUpButton(2);
-        ListCardsPage = DashboardPage.topUp(amount, 1);
+        var dashboardPage = listCardsPage.topUpButton(card1);
+        listCardsPage = dashboardPage.topUp(amount, card2);
 
-        int expected2 = balance2 + amount;
-        int actual2 = ListCardsPage.getCardBalance(2);
+        Assertions.assertEquals((balance1+amount), listCardsPage.getCardBalance(card1));
+        Assertions.assertEquals(0, listCardsPage.getCardBalance(card2));
 
-        Assertions.assertEquals(expected, actual);
-        Assertions.assertEquals(expected2, actual2);
+        balance1 = listCardsPage.getCardBalance(card1);
+        dashboardPage = listCardsPage.topUpButton(card2);
+        listCardsPage = dashboardPage.topUp(amount, card1);
+
+        Assertions.assertEquals(amount, listCardsPage.getCardBalance(card2));
+        Assertions.assertEquals((balance1-amount), listCardsPage.getCardBalance(card1));
     }
 
-    @Test
-        //Сумма перевода равна 0
+    @Test //Тест вносит данные с суммой, равной 0, и проверяет чтобы кнопка 'Пополнить' осталась неактивной.
     void shouldNotTransferValidAmountEqualToNull() {
         var loginPage = new LoginPageV2();
-//    var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        var ListCardsPage = verificationPage.validVerify(verificationCode);
+        var listCardsPage = verificationPage.validVerify(verificationCode);
+
+        var card1 = DataHelper.getFirstCard();
+        var card2 = DataHelper.getSecondCard();
         int amount = 0;
-        var DashboardPage = ListCardsPage.topUpButton(1);
 
-        Assertions.assertSame(DashboardPage, DashboardPage.topUpInvalid(amount, 2));
-
+        var dashboardPage = listCardsPage.topUpButton(card1);
+        dashboardPage.topUpInvalid(amount, card2);
+        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
     }
 
 
-    @Test
-        //сумма перевода превышает баланс карты, с которой осуществляется перевод
+    @Test //Сумма перевода превышает баланс карты, с которой осуществляется перевод.
+        // Тест проверяет, чтобы кнопка Пополнить осталась неактивной
+        // и появилось сообщение: На счете недостаточно средств
     void shouldNotTransferInvalidAmountMoreBalance() {
         var loginPage = new LoginPageV2();
-//      var loginPage = open("http://localhost:9999", LoginPageV2.class);
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        var ListCardsPage = verificationPage.validVerify(verificationCode);
-        int amount = ListCardsPage.getInvalidTransferAmount(2);
-        var DashboardPage = ListCardsPage.topUpButton(1);
+        var listCardsPage = verificationPage.validVerify(verificationCode);
 
+        var card1 = DataHelper.getFirstCard();
+        var card2 = DataHelper.getSecondCard();
+        int balance2 = listCardsPage.getCardBalance(card2);
+        int amount = DataHelper.getInvalidTransferAmount(balance2);
 
-        Assertions.assertSame(DashboardPage, DashboardPage.topUpInvalid(amount, 2));
+        var dashboardPage = listCardsPage.topUpButton(card1);
+        dashboardPage.topUpInvalid(amount, card2);
+        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
+        Assertions.assertTrue(dashboardPage.searchMessage("недостаточно средств"));
+    }
+
+    @Test //Указываем один и тот же счет, с которого переводим и на который переводим.
+    // Ожидается сообщение типа: "Вы указали один и тот же счет", кнопка Пополнить должна быть неактивна,
+    // Дополнительный варианты реализации: автоматически меняется счет зачисления на другой или невозможно выбрать такой же счет.
+    // Необходимо уточнять требования.
+    void shouldNotTransferIdenticalAccount() {
+        var loginPage = new LoginPageV2();
+        var authInfo = DataHelper.getAuthInfo();
+        var verificationPage = loginPage.validLogin(authInfo);
+        var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
+        var listCardsPage = verificationPage.validVerify(verificationCode);
+
+        var card1 = DataHelper.getFirstCard();
+        int balance1 = listCardsPage.getCardBalance(card1);
+        int amount = DataHelper.getValidTransferAmount(balance1);
+
+        var dashboardPage = listCardsPage.topUpButton(card1);
+        dashboardPage.topUpInvalid(amount, card1);
+
+        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
+        Assertions.assertTrue(dashboardPage.searchMessage("вы указали один и тот же счет"));
     }
 
 }
