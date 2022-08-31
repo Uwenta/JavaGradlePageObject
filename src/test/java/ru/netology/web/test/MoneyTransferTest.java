@@ -1,5 +1,6 @@
 package ru.netology.web.test;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import ru.netology.web.data.DataHelper;
 import ru.netology.web.page.LoginPageV2;
 
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
 
 
 class MoneyTransferTest {
@@ -61,8 +62,7 @@ class MoneyTransferTest {
         var card1 = DataHelper.getFirstCard();
         var card2 = DataHelper.getSecondCard();
         int balance1 = listCardsPage.getCardBalance(card1);
-        int balance2 = listCardsPage.getCardBalance(card2);
-        int amount = balance2;
+        int amount = listCardsPage.getCardBalance(card2);
 
         var dashboardPage = listCardsPage.topUpButton(card1);
         listCardsPage = dashboardPage.topUp(amount, card2);
@@ -92,7 +92,7 @@ class MoneyTransferTest {
 
         var dashboardPage = listCardsPage.topUpButton(card1);
         dashboardPage.topUpInvalid(amount, card2);
-        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
+        $("[data-test-id='action-transfer']").shouldBe(Condition.disabled);
     }
 
 
@@ -113,8 +113,10 @@ class MoneyTransferTest {
 
         var dashboardPage = listCardsPage.topUpButton(card1);
         dashboardPage.topUpInvalid(amount, card2);
-        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
-        Assertions.assertTrue(dashboardPage.searchMessage("недостаточно средств"));
+
+        $("[data-test-id='action-transfer']").shouldBe(Condition.disabled);
+        $x("//*[contains(text(), 'недостаточно средств']").shouldBe(Condition.visible);
+
     }
 
     @Test //Указываем один и тот же счет, с которого переводим и на который переводим.
@@ -135,8 +137,9 @@ class MoneyTransferTest {
         var dashboardPage = listCardsPage.topUpButton(card1);
         dashboardPage.topUpInvalid(amount, card1);
 
-        Assertions.assertTrue(dashboardPage.searchButtonTopUpDisabled());
-        Assertions.assertTrue(dashboardPage.searchMessage("вы указали один и тот же счет"));
+        $("[data-test-id='action-transfer']").shouldBe(Condition.disabled);
+        $x("//*[contains(text(), 'вы указали один и тот же счет']").shouldBe(Condition.visible);
+
     }
 
 }

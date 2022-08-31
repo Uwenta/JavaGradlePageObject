@@ -22,7 +22,7 @@ public class DashboardPage {
         from.shouldBe(visible);
     }
 
-    public void EnterData(int amount, DataHelper.CardsInfo card) {
+    public void enterData(int amount, DataHelper.CardsInfo card) {
         amountInput.sendKeys(Keys.CONTROL + "a");
         amountInput.sendKeys(Keys.DELETE);
         amountInput.setValue(String.valueOf(amount));
@@ -32,21 +32,13 @@ public class DashboardPage {
     }
 
     public ListCardsPage topUp(int amount, DataHelper.CardsInfo card) {
-        EnterData(amount, card);
+        enterData(amount, card);
         buttonTopUp.click();
         return new ListCardsPage();
     }
 
     public void topUpInvalid(int invalidAmount, DataHelper.CardsInfo card) {
-        EnterData(invalidAmount, card);
-    }
-
-    public boolean searchButtonTopUpDisabled() {
-        return !buttonTopUp.isEnabled();
-    }
-
-    public boolean searchMessage(String message) {
-       return $x("//*[contains(text(), '"+ message +"']").isDisplayed();
+        enterData(invalidAmount, card);
     }
 
 }
